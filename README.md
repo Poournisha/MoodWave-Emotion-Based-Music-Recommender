@@ -1,9 +1,3 @@
-Here’s a clean, professional, GitHub-ready **README** for your project **MoodWave – Emotion-Based Music Recommender**.
-
-If you want a shorter, aesthetic, or emoji-rich version, tell me — I can style it any way you want.
-
----
-
 # 🎧 **MoodWave – Emotion-Based Music Recommender**
 
 MoodWave is an emotion-driven music recommendation system built using **HTML, CSS, JavaScript, PHP, and MySQL (XAMPP)**.
