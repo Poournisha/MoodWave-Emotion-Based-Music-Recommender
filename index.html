@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodWave - Music Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Verdana', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .bg-slideshow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+        
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        
+        .bg-slide.active {
+            opacity: 1;
+        }
+        
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(25,25,112,0.6) 50%, rgba(0,0,0,0.8) 100%);
+            z-index: -1;
+        }
+    
+        .floating-notes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .note {
+            position: absolute;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.3);
+            animation: float 20s linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+   
+.glass-effect {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.neon-text {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+        .gradient-text {
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 8s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .bright-text {
+            color: #ffffff;
+        }
+      
+        .mood-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mood-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .mood-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .mood-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .mood-icon {
+            font-size: 4rem;
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #ff0080, #ff8c00);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 5px rgba(255, 0, 128, 0.4);
+            border: none;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 10px rgba(255, 0, 128, 0.6);
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        input, select, textarea {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #40e0d0;
+            box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+        }
+        
+        ::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .music-visualizer {
+            display: flex;
+            align-items: flex-end;
+            height: 40px;
+            gap: 3px;
+        }
+        
+        .bar {
+            width: 4px;
+            background: linear-gradient(to top, #ff0080, #40e0d0);
+            border-radius: 2px;
+            animation: dance 0.5s ease-in-out infinite alternate;
+        }
+        
+        .bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+        .bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+        .bar:nth-child(3) { animation-delay: 0.2s; height: 15px; }
+        .bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+        .bar:nth-child(5) { animation-delay: 0.4s; height: 18px; }
+        
+        @keyframes dance {
+            to { height: 30px; }
+        }
+        
+        .song-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            border-radius: 15px;
+        }
+        
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateX(5px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .playing {
+            background: linear-gradient(135deg, rgba(255, 0, 128, 0.3), rgba(64, 224, 208, 0.3));
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+     .volume-slider {
+    width: 100px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.volume-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #40e0d0;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -6px; 
+}
+
+.volume-slider::-moz-range-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+.volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #40e0d0;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+        
+        .volume-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #40e0d0;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .headset-decoration {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            opacity: 0.2;
+            z-index: -1;
+            color: #ffffff;
+        }
+        
+        .headset-1 {
+            top: 10%;
+            left: 5%;
+            transform: rotate(-15deg);
+        }
+        
+        .headset-2 {
+            bottom: 10%;
+            right: 5%;
+            transform: rotate(15deg);
+        }
+        
+        .music-note {
+            position: absolute;
+            font-size: 30px;
+            color: #ffffff;
+            animation: floatNote 10s linear infinite;
+        }
+        
+        @keyframes floatNote {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Navigation */
+        .nav-link {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff0080, #40e0d0);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .form-container {
+            position: relative;
+            z-index: 10;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s ease-out;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+        }
+        
+        .notification.error {
+            background: linear-gradient(45deg, #F44336, #E91E63);
+        }
+        
+        .notification.info {
+            background: linear-gradient(45deg, #2196F3, #03A9F4);
+        }
+        
+        .notification.warning {
+            background: linear-gradient(45deg, #FF9800, #FFC107);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-slideshow">
+        <div class="bg-slide active" style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1920&q=80');"></div>
+    </div>
+    <div class="bg-overlay"></div>
+
+    <div class="floating-notes">
+        <div class="note" style="left: 10%; animation-delay: 0s;">♪</div>
+        <div class="note" style="left: 20%; animation-delay: 2s;">♫</div>
+        <div class="note" style="left: 30%; animation-delay: 4s;">♪</div>
+        <div class="note" style="left: 40%; animation-delay: 6s;">♬</div>
+        <div class="note" style="left: 50%; animation-delay: 8s;">♪</div>
+        <div class="note" style="left: 60%; animation-delay: 10s;">♫</div>
+        <div class="note" style="left: 70%; animation-delay: 12s;">♪</div>
+        <div class="note" style="left: 80%; animation-delay: 14s;">♬</div>
+        <div class="note" style="left: 90%; animation-delay: 16s;">♪</div>
+    </div>
+
+    <i class="fas fa-headset headset-decoration headset-1"></i>
+    <i class="fas fa-headset headset-decoration headset-2"></i>
+
+    <nav class="glass-effect fixed top-0 w-full z-50 px-6 py-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="music-visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+                <h1 class="text-4xl font-bold neon-text">MOODWAVE</h1>
+            </div>
+            <div id="navMenu" class="hidden md:flex items-center space-x-6">
+                <button onclick="showView('home')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-home mr-2"></i>Home
+                </button>
+                <button onclick="showView('mood-selector')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-smile mr-2"></i>Moods
+                </button>
+                <button onclick="showView('library')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-music mr-2"></i>Library
+                </button>
+                <button onclick="showView('playlists')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-list mr-2"></i>Playlists
+                </button>
+                <button onclick="showView('ai-insights')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-brain mr-2"></i>AI Insights
+                </button>
+                <button onclick="showView('admin')" class="nav-link bright-text hover:text-cyan-300 transition">
+                    <i class="fas fa-cog mr-2"></i>Admin
+                </button>
+                <button onclick="logout()" class="text-red-400 hover:text-red-300 transition">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+            <button class="md:hidden" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars text-2xl bright-text"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mobileMenu" class="hidden md:hidden glass-effect fixed top-16 w-full z-40">
+        <div class="px-6 py-4 space-y-3">
+            <button onclick="showView('home'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-home mr-2"></i>Home
+            </button>
+            <button onclick="showView('mood-selector'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-smile mr-2"></i>Moods
+            </button>
+            <button onclick="showView('library'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-music mr-2"></i>Library
+            </button>
+            <button onclick="showView('playlists'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-list mr-2"></i>Playlists
+            </button>
+            <button onclick="showView('ai-insights'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-brain mr-2"></i>AI Insights
+            </button>
+            <button onclick="showView('admin'); toggleMobileMenu()" class="block w-full text-left py-2 hover:text-cyan-300 bright-text">
+                <i class="fas fa-cog mr-2"></i>Admin
+            </button>
+            <button onclick="logout(); toggleMobileMenu()" class="block w-full text-left py-2 text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </button>
+        </div>
+    </div>
+    <main class="container mx-auto px-6 pt-24 pb-32">
+        <div id="authView" class="max-w-md mx-auto">
+            <div class="glass-effect rounded-2xl p-8 form-container">
+                <div class="text-center mb-8">
+                    <h2 class="text-5xl font-bold neon-text mb-4">MOODWAVE</h2>
+                    <p class="text-xl bright-text">Feel the Music, Match Your Mood</p>
+                    <i class="fas fa-headphones-alt text-7xl mt-6 text-cyan-400 pulse-animation"></i>
+                </div>
+                <div id="loginForm" class="space-y-6">
+                    <h3 class="text-3xl font-semibold text-center bright-text">Welcome Back</h3>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Username</label>
+                        <input type="text" id="loginUsername" class="w-full px-4 py-3 rounded-lg" placeholder="Enter your username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Password</label>
+                        <input type="password" id="loginPassword" class="w-full px-4 py-3 rounded-lg" placeholder="Enter your password">
+                    </div>
+                    <button onclick="login()" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        Login
+                    </button>
+                    <p class="text-center bright-text">
+                        New here? 
+                        <button onclick="showRegisterForm()" class="text-cyan-400 hover:text-cyan-300">Create Account</button>
+                    </p>
+                </div>
+                <div id="registerForm" class="space-y-6 hidden">
+                    <h3 class="text-3xl font-semibold text-center bright-text">Join MoodWave</h3>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Username</label>
+                        <input type="text" id="registerUsername" class="w-full px-4 py-3 rounded-lg" placeholder="Choose a username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Email</label>
+                        <input type="email" id="registerEmail" class="w-full px-4 py-3 rounded-lg" placeholder="Enter your email">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Password</label>
+                        <input type="password" id="registerPassword" class="w-full px-4 py-3 rounded-lg" placeholder="Create a password">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="w-full px-4 py-3 rounded-lg" placeholder="Confirm your password" autocomplete="new-password">
+                    </div>
+                    <button onclick="register()" class="btn-primary w-full py-3 rounded-lg font-semibold">
+                        Create Account
+                    </button>
+                    <p class="text-center bright-text">
+                        Already have an account? 
+                        <button onclick="showLoginForm()" class="text-cyan-400 hover:text-cyan-300">Login</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="homeView" class="hidden">
+            <div class="text-center mb-16">
+                <h2 class="text-6xl font-bold mb-6 neon-text">Your Musical Journey</h2>
+                <p class="text-2xl bright-text">Let your emotions guide your soundtrack</p>
+                <i class="fas fa-music text-7xl mt-8 text-pink-400 pulse-animation"></i>
+            </div>
+            <div class="mb-16">
+                <h3 class="text-4xl font-semibold mb-10 text-center bright-text">How are you feeling?</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div onclick="selectMood('happy')" class="mood-card rounded-2xl p-8 text-center">
+                        <i class="fas fa-laugh-beam mood-icon mb-4"></i>
+                        <p class="text-2xl font-semibold bright-text">Happy</p>
+                        <p class="text-sm bright-text mt-2">Upbeat vibes</p>
+                    </div>
+                    <div onclick="selectMood('sad')" class="mood-card rounded-2xl p-8 text-center">
+                        <i class="fas fa-sad-tear mood-icon mb-4"></i>
+                        <p class="text-2xl font-semibold bright-text">Sad</p>
+                        <p class="text-sm bright-text mt-2">Emotional depth</p>
+                    </div>
+                    <div onclick="selectMood('energetic')" class="mood-card rounded-2xl p-8 text-center">
+                        <i class="fas fa-fire mood-icon mb-4"></i>
+                        <p class="text-2xl font-semibold bright-text">Energetic</p>
+                        <p class="text-sm bright-text mt-2">Power boost</p>
+                    </div>
+                    <div onclick="selectMood('relaxed')" class="mood-card rounded-2xl p-8 text-center">
+                        <i class="fas fa-spa mood-icon mb-4"></i>
+                        <p class="text-2xl font-semibold bright-text">Relaxed</p>
+                        <p class="text-sm bright-text mt-2">Peaceful calm</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-4xl font-semibold mb-10 bright-text">Recently Played</h3>
+                <div id="recentlyPlayed" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </div>
+        <div id="moodSelectorView" class="hidden">
+            <h2 class="text-5xl font-bold mb-12 text-center neon-text">Select Your Mood</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div onclick="getRecommendations('happy')" class="mood-card rounded-2xl p-8 text-center floating">
+                    <i class="fas fa-laugh-beam mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Happy</h3>
+                    <p class="bright-text">Joyful melodies</p>
+                </div>
+                <div onclick="getRecommendations('sad')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 0.2s;">
+                    <i class="fas fa-sad-tear mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Sad</h3>
+                    <p class="bright-text">Soulful tunes</p>
+                </div>
+                <div onclick="getRecommendations('energetic')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 0.4s;">
+                    <i class="fas fa-fire mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Energetic</h3>
+                    <p class="bright-text">High energy</p>
+                </div>
+                <div onclick="getRecommendations('relaxed')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 0.6s;">
+                    <i class="fas fa-spa mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Relaxed</h3>
+                    <p class="bright-text">Zen moments</p>
+                </div>
+                <div onclick="getRecommendations('romantic')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 0.8s;">
+                    <i class="fas fa-heart mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Romantic</h3>
+                    <p class="bright-text">Love songs</p>
+                </div>
+                <div onclick="getRecommendations('focused')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 1s;">
+                    <i class="fas fa-brain mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Focused</h3>
+                    <p class="bright-text">Deep concentration</p>
+                </div>
+                <div onclick="getRecommendations('party')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 1.2s;">
+                    <i class="fas fa-glass-cheers mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Party</h3>
+                    <p class="bright-text">Dance beats</p>
+                </div>
+                <div onclick="getRecommendations('nostalgic')" class="mood-card rounded-2xl p-8 text-center floating" style="animation-delay: 1.4s;">
+                    <i class="fas fa-clock mood-icon mb-4"></i>
+                    <h3 class="text-3xl font-semibold mb-2 bright-text">Nostalgic</h3>
+                    <p class="bright-text">Memory lane</p>
+                </div>
+            </div>
+        </div>
+        <div id="recommendationsView" class="hidden">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-5xl font-bold">
+                    Songs for <span id="currentMood" class="gradient-text"></span> Mood
+                </h2>
+                <div class="flex space-x-6">
+                    <button onclick="toggleShuffle()" id="shuffleBtn" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-random"></i> Shuffle
+                    </button>
+                    <button onclick="showView('mood-selector')" class="text-cyan-400 hover:text-cyan-300">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Moods
+                    </button>
+                </div>
+            </div>
+            <div id="songsList" class="space-y-6">
+            </div>
+        </div>
+        <div id="aiInsightsView" class="hidden">
+            <h2 class="text-5xl font-bold mb-10 text-center neon-text">AI-Powered Music Insights</h2>
+            <div class="glass-effect rounded-2xl p-8 mb-10">
+                <h3 class="text-3xl font-semibold mb-6 bright-text">Describe your current mood or situation</h3>
+                <textarea id="moodDescription" class="w-full px-4 py-3 rounded-lg h-32" placeholder="I'm feeling..."></textarea>
+                <button onclick="analyzeMood()" class="btn-primary px-6 py-3 rounded-lg font-semibold mt-6">
+                    <i class="fas fa-brain mr-2"></i>Analyze My Mood
+                </button>
+            </div>
+            <div id="aiResponse" class="hidden glass-effect rounded-2xl p-8">
+                <h3 class="text-3xl font-semibold mb-6 bright-text">AI Analysis</h3>
+                <div id="aiInsightContent" class="mb-6 p-6 rounded-xl" style="background: rgba(64, 224, 208, 0.1); border-left: 3px solid #40e0d0;">
+                </div>
+                <div id="recommendedMood" class="mt-6 p-6 glass-effect rounded-xl">
+                    <h4 class="text-2xl font-semibold mb-4 bright-text">Detected Mood</h4>
+                    <div id="detectedMoodDisplay" class="flex items-center space-x-6"></div>
+                </div>
+                <button onclick="getRecommendationsFromAI()" class="btn-primary px-6 py-3 rounded-lg font-semibold mt-8">
+                    <i class="fas fa-music mr-2"></i>Get Music Recommendations
+                </button>
+            </div>
+        </div>
+        <div id="libraryView" class="hidden">
+            <h2 class="text-5xl font-bold mb-10 bright-text">My Music Library</h2>
+            <div class="mb-8">
+                <input type="text" id="searchLibrary" placeholder="Search songs..." class="w-full md:w-1/2 px-4 py-3 rounded-lg" onkeyup="searchLibrary()">
+            </div>
+            <div id="librarySongs" class="space-y-6">
+            </div>
+        </div>
+        <div id="playlistsView" class="hidden">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-5xl font-bold bright-text">My Playlists</h2>
+                <button onclick="showCreatePlaylist()" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Create Playlist
+                </button>
+            </div>
+            <div id="playlistsList" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            </div>
+        </div>
+        <div id="adminView" class="hidden">
+            <h2 class="text-5xl font-bold mb-10 neon-text">Admin Panel</h2>
+            <div class="border-b border-gray-700 mb-10">
+                <nav class="-mb-px flex space-x-10">
+                    <button onclick="showAdminTab('songs')" class="admin-tab py-3 px-2 border-b-4 border-cyan-400 text-cyan-400 font-bold text-lg">
+                        Manage Songs
+                    </button>
+                    <button onclick="showAdminTab('moods')" class="admin-tab py-3 px-2 border-b-4 border-transparent text-gray-400 hover:text-gray-300 font-bold text-lg">
+                        Manage Moods
+                    </button>
+                    <button onclick="showAdminTab('users')" class="admin-tab py-3 px-2 border-b-4 border-transparent text-gray-400 hover:text-gray-300 font-bold text-lg">
+                        Manage Users
+                    </button>
+                </nav>
+            </div>
+            <div id="adminSongs" class="admin-tab-content">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-3xl font-semibold bright-text">Songs Management</h3>
+                    <button onclick="showAddSongForm()" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                        <i class="fas fa-plus mr-2"></i>Add Song
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full glass-effect rounded-lg">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Title</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Artist</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Album</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Mood</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSongsList" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="adminMoods" class="admin-tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-3xl font-semibold bright-text">Moods Management</h3>
+                    <button onclick="showAddMoodForm()" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                        <i class="fas fa-plus mr-2"></i>Add Mood
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                </div>
+            </div>
+            <div id="adminUsers" class="admin-tab-content hidden">
+                <h3 class="text-3xl font-semibold mb-8 bright-text">Users Management</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full glass-effect rounded-lg">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Username</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Email</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Registered</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase bright-text">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersList" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="addSongModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="glass-effect rounded-2xl p-8 max-w-md w-full">
+                <h3 class="text-3xl font-bold mb-6 neon-text">Add New Song</h3>
+                <form onsubmit="addSong(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Title</label>
+                        <input type="text" id="songTitle" required class="w-full px-4 py-3 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Artist</label>
+                        <input type="text" id="songArtist" required class="w-full px-4 py-3 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Album</label>
+                        <input type="text" id="songAlbum" required class="w-full px-4 py-3 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Mood</label>
+                        <select id="songMood" required class="w-full px-4 py-3 rounded-lg">
+                            <option value="">Select mood</option>
+                            <option value="happy">Happy</option>
+                            <option value="sad">Sad</option>
+                            <option value="energetic">Energetic</option>
+                            <option value="relaxed">Relaxed</option>
+                            <option value="romantic">Romantic</option>
+                            <option value="focused">Focused</option>
+                            <option value="party">Party</option>
+                            <option value="nostalgic">Nostalgic</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 bright-text">Duration (seconds)</label>
+                        <input type="number" id="songDuration" required class="w-full px-4 py-3 rounded-lg">
+                    </div>
+                    <div class="flex justify-end space-x-4 pt-4">
+                        <button type="button" onclick="closeAddSongModal()" class="px-6 py-3 text-gray-400 hover:text-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                            Add Song
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <div id="musicPlayer" class="fixed bottom-0 left-0 right-0 glass-effect border-t border-gray-700 hidden">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <img id="playerAlbumArt" src="https://picsum.photos/seed/album1/60/60" alt="Album Art" class="w-14 h-14 rounded-lg">
+                    <div>
+                        <p id="playerSongTitle" class="font-semibold text-lg bright-text">Song Title</p>
+                        <p id="playerArtist" class="text-gray-400">Artist</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button onclick="previousSong()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-step-backward text-xl"></i>
+                    </button>
+                    <button onclick="togglePlay()" class="btn-primary w-14 h-14 rounded-full flex items-center justify-center">
+                        <i id="playPauseIcon" class="fas fa-play text-xl"></i>
+                    </button>
+                    <button onclick="nextSong()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-step-forward text-xl"></i>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="currentTime" class="text-sm text-gray-400">0:00</span>
+                    <div class="w-32 md:w-64 bg-gray-700 rounded-full h-2">
+                        <div id="progressBar" class="bg-gradient-to-r from-cyan-500 to-pink-500 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span id="totalTime" class="text-sm text-gray-400">0:00</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleVolume()" class="text-gray-400 hover:text-white">
+                            <i id="volumeIcon" class="fas fa-volume-up"></i>
+                        </button>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70" onchange="setVolume(this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <i class="fas fa-music music-note" style="left: 5%; animation-delay: 0s;"></i>
+    <i class="fas fa-music music-note" style="left: 15%; animation-delay: 3s;"></i>
+    <i class="fas fa-music music-note" style="left: 25%; animation-delay: 6s;"></i>
+    <i class="fas fa-music music-note" style="left: 35%; animation-delay: 9s;"></i>
+    <i class="fas fa-music music-note" style="left: 45%; animation-delay: 12s;"></i>
+    <i class="fas fa-music music-note" style="left: 55%; animation-delay: 15s;"></i>
+    <i class="fas fa-music music-note" style="left: 65%; animation-delay: 18s;"></i>
+    <i class="fas fa-music music-note" style="left: 75%; animation-delay: 21s;"></i>
+    <i class="fas fa-music music-note" style="left: 85%; animation-delay: 24s;"></i>
+    <i class="fas fa-music music-note" style="left: 95%; animation-delay: 27s;"></i>
+    <audio id="audioPlayer" style="display: none;"></audio>
+    
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.bg-slide');
+        
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        setInterval(nextSlide, 5000);
+        let currentUser = null;
+        let currentView = 'auth';
+        let currentSong = null;
+        let isPlaying = false;
+        let currentPlaylist = [];
+        let currentSongIndex = 0;
+        let isShuffleOn = false;
+        let volume = 70;
+        let detectedMood = null;
+        let audioPlayer = document.getElementById('audioPlayer');
+        const mockSongs = [
+            { id: 1, title: "Happy Days", artist: "Sunshine Band", album: "Feel Good", mood: "happy", duration: 210, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+            { id: 2, title: "Rainy Blues", artist: "Soulful Voices", album: "Melancholy", mood: "sad", duration: 240, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+            { id: 3, title: "Energy Rush", artist: "Power Surge", album: "High Voltage", mood: "energetic", duration: 180, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+            { id: 4, title: "Zen Garden", artist: "Calm Waters", album: "Peaceful Moments", mood: "relaxed", duration: 300, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+            { id: 5, title: "Love Story", artist: "Romantic Hearts", album: "Forever Yours", mood: "romantic", duration: 220, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
+            { id: 6, title: "Focus Flow", artist: "Mind Masters", album: "Deep Concentration", mood: "focused", duration: 270, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
+            { id: 7, title: "Party All Night", artist: "Dance Kings", album: "Club Hits", mood: "party", duration: 200, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+            { id: 8, title: "Memory Lane", artist: "Nostalgia Band", album: "Good Old Days", mood: "nostalgic", duration: 250, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+            { id: 9, title: "Sunshine Smile", artist: "Happy People", album: "Joyful Journey", mood: "happy", duration: 190, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
+            { id: 10, title: "Tear Drops", artist: "Emotional Souls", album: "Heartfelt", mood: "sad", duration: 230, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
+            { id: 11, title: "Thunder Power", artist: "Electric Storm", album: "Force of Nature", mood: "energetic", duration: 210, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
+            { id: 12, title: "Ocean Breeze", artist: "Tranquil Sounds", album: "Serene Shores", mood: "relaxed", duration: 280, audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" }
+        ];
+        
+        const mockUsers = [
+            { id: 1, username: "admin", email: "admin@moodwave.com", created_at: "2023-01-01" },
+            { id: 2, username: "musiclover", email: "user@example.com", created_at: "2023-02-15" },
+            { id: 3, username: "beatsfan", email: "beats@example.com", created_at: "2023-03-20" }
+        ];
+        
+        const mockPlaylists = [
+            { 
+                id: 1, 
+                name: "My Favorites", 
+                songs_count: 5,
+                songs: [mockSongs[0], mockSongs[2], mockSongs[4], mockSongs[6], mockSongs[8]]
+            },
+            { 
+                id: 2, 
+                name: "Chill Vibes", 
+                songs_count: 3,
+                songs: [mockSongs[3], mockSongs[7], mockSongs[11]]
+            },
+            { 
+                id: 3, 
+                name: "Workout Mix", 
+                songs_count: 4,
+                songs: [mockSongs[2], mockSongs[5], mockSongs[6], mockSongs[10]]
+            }
+        ];
+        
+        const mockRecentlyPlayed = [mockSongs[0], mockSongs[3], mockSongs[5]];
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+            audioPlayer.addEventListener('ended', nextSong);
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                document.getElementById('totalTime').textContent = formatTime(audioPlayer.duration);
+            });
+        });
+        function checkAuth() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showView('home');
+                updateNavigation();
+            } else {
+                showView('auth');
+            }
+        }
+        
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!username || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            currentUser = { 
+                id: 1, 
+                username: username, 
+                email: `${username}@example.com`,
+                isAdmin: username === 'admin'
+            };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showView('home');
+            updateNavigation();
+            showNotification('Login successful!', 'success');
+        }
+        
+        function register() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (!username || !email || !password || !confirmPassword) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            currentUser = { 
+                id: Date.now(), 
+                username: username, 
+                email: email,
+                isAdmin: false
+            };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showNotification('Registration successful! Please login.', 'success');
+            showLoginForm();
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showView('auth');
+            updateNavigation();
+            hideMusicPlayer();
+            showNotification('Logged out successfully', 'success');
+        }
+        
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('registerUsername').focus();
+                const inputs = document.querySelectorAll('#registerForm input');
+                inputs.forEach(input => {
+                    input.disabled = false;
+                    input.style.pointerEvents = 'auto';
+                });
+            }, 100);
+        }
+        function showView(view) {
+            document.getElementById('authView').classList.add('hidden');
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('moodSelectorView').classList.add('hidden');
+            document.getElementById('recommendationsView').classList.add('hidden');
+            document.getElementById('aiInsightsView').classList.add('hidden');
+            document.getElementById('libraryView').classList.add('hidden');
+            document.getElementById('playlistsView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+            
+            switch(view) {
+                case 'auth':
+                    document.getElementById('authView').classList.remove('hidden');
+                    break;
+                case 'home':
+                    document.getElementById('homeView').classList.remove('hidden');
+                    loadRecentlyPlayed();
+                    break;
+                case 'mood-selector':
+                    document.getElementById('moodSelectorView').classList.remove('hidden');
+                    break;
+                case 'recommendations':
+                    document.getElementById('recommendationsView').classList.remove('hidden');
+                    break;
+                case 'ai-insights':
+                    document.getElementById('aiInsightsView').classList.remove('hidden');
+                    break;
+                case 'library':
+                    document.getElementById('libraryView').classList.remove('hidden');
+                    loadLibrary();
+                    break;
+                case 'playlists':
+                    document.getElementById('playlistsView').classList.remove('hidden');
+                    loadPlaylists();
+                    break;
+                case 'admin':
+                    if (currentUser && currentUser.isAdmin) {
+                        document.getElementById('adminView').classList.remove('hidden');
+                        loadAdminData();
+                    } else {
+                        showNotification('You do not have permission to access this page', 'error');
+                        showView('home');
+                    }
+                    break;
+            }
+            currentView = view;
+            updateNavigation();
+        }
+        
+        function updateNavigation() {
+            const navMenu = document.getElementById('navMenu');
+            if (currentUser) {
+                navMenu.classList.remove('hidden');
+            } else {
+                navMenu.classList.add('hidden');
+            }
+        }
+        
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+        function selectMood(mood) {
+            getRecommendations(mood);
+        }
+        
+        function getRecommendations(mood) {
+            document.getElementById('currentMood').textContent = mood.charAt(0).toUpperCase() + mood.slice(1);
+            
+            const filteredSongs = mockSongs.filter(song => song.mood === mood);
+            currentPlaylist = filteredSongs;
+            currentSongIndex = 0;
+            displaySongs(filteredSongs);
+            showView('recommendations');
+        }
+        
+        function displaySongs(songs) {
+            const songsList = document.getElementById('songsList');
+            songsList.innerHTML = '';
+            songs.forEach((song, index) => {
+                const songElement = document.createElement('div');
+                songElement.className = 'song-item rounded-xl p-6 flex items-center justify-between';
+                songElement.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="https://picsum.photos/seed/album${song.id}/60/60" alt="Album Art" class="w-14 h-14 rounded-lg">
+                        <div>
+                            <h4 class="font-semibold text-lg bright-text">${song.title}</h4>
+                            <p class="text-gray-400">${song.artist} • ${song.album}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-400">${formatTime(song.duration)}</span>
+                        <button onclick="playSong(${index})" class="btn-primary px-4 py-2 rounded-lg">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button onclick="addToPlaylist(${song.id})" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                `;
+                songsList.appendChild(songElement);
+            });
+        }
+    
+        function analyzeMood() {
+            const description = document.getElementById('moodDescription').value;
+            if (!description) {
+                showNotification('Please describe your mood or situation', 'error');
+                return;
+            }
+            const lowerDescription = description.toLowerCase();
+            let detectedMood = null;
+            let maxScore = 0;
+            const moodKeywords = {
+                happy: ["joy", "happiness", "cheerful", "upbeat", "positive", "excited", "glad"],
+                sad: ["sadness", "melancholy", "depressed", "down", "blue", "unhappy", "grief"],
+                energetic: ["energy", "active", "workout", "exercise", "power", "energized", "dynamic"],
+                relaxed: ["calm", "peaceful", "zen", "chill", "meditation", "tranquil", "serene"],
+                romantic: ["love", "romance", "passion", "intimate", "relationship", "affection"],
+                focused: ["focus", "concentration", "study", "work", "productivity", "attention"],
+                party: ["party", "dance", "celebration", "fun", "social", "festive"],
+                nostalgic: ["memories", "past", "nostalgia", "remember", "childhood", "reminisce"]
+            };
+            
+            Object.keys(moodKeywords).forEach(mood => {
+                let score = 0;
+                moodKeywords[mood].forEach(keyword => {
+                    if (lowerDescription.includes(keyword)) {
+                        score++;
+                    }
+                });
+                if (score > maxScore) {
+                    maxScore = score;
+                    detectedMood = mood;
+                }
+            });
+            if (!detectedMood) {
+                detectedMood = "relaxed";
+            }
+            window.detectedMood = detectedMood;
+            const aiResponseDiv = document.getElementById('aiResponse');
+            const aiInsightContent = document.getElementById('aiInsightContent');
+            const detectedMoodDisplay = document.getElementById('detectedMoodDisplay');
+            const aiResponses = {
+                happy: [
+                    "I can sense your positive energy! Your words reflect a cheerful and upbeat mood. This is perfect for some uplifting music that will enhance your joyful state.",
+                    "Your positive vibes are contagious! You seem to be in a great mood, full of happiness and optimism. Let's find some music that matches your bright spirit."
+                ],
+                sad: [
+                    "I can feel the emotion in your words. You seem to be experiencing a period of reflection or sadness. Music can be a powerful companion during these times, helping you process your feelings.",
+                    "Your words carry a sense of melancholy. It's okay to feel this way. The right music can provide comfort and understanding, helping you navigate through these emotions."
+                ],
+                energetic: [
+                    "Your energy is palpable! You're feeling pumped and ready for action. This calls for some high-energy tracks that will match your vibrant spirit and keep you motivated.",
+                    "I can sense your dynamic and active state. You're full of energy and ready to take on the world. Let's find some powerful beats to fuel your momentum."
+                ],
+                relaxed: [
+                    "Your words convey a sense of calm and tranquility. You're seeking peace and relaxation, which is perfect for some soothing music that will enhance your serene state.",
+                    "I can feel your desire for calm and peacefulness. You're in a relaxed state of mind, looking for music that will help you maintain this tranquil atmosphere."
+                ],
+                romantic: [
+                    "Your words are filled with warmth and affection. You're in a romantic mood, seeking connection and intimacy. Let's find some music that will complement your loving state.",
+                    "I can sense the romantic energy in your words. You're feeling passionate and loving, which calls for some music that will enhance your amorous mood."
+                ],
+                focused: [
+                    "Your words indicate a need for concentration and mental clarity. You're in a focused state of mind, seeking music that will help you maintain your productivity.",
+                    "I can sense your determination and focus. You're looking for music that will support your concentration and help you stay in the zone."
+                ],
+                party: [
+                    "Your words are bursting with excitement and social energy! You're ready to celebrate and have fun. Let's find some upbeat tracks that will get the party started.",
+                    "I can feel your festive and outgoing vibe. You're in a party mood, looking for music that will get everyone on their feet and create an amazing atmosphere."
+                ],
+                nostalgic: [
+                    "Your words carry a sense of longing for the past. You're feeling nostalgic, reminiscing about memories and times gone by. Let's find some music that will complement your reflective mood.",
+                    "I can sense your sentimental journey into the past. You're feeling nostalgic, seeking comfort in memories. Music can be a powerful time machine, taking you back to those cherished moments."
+                ]
+            };
+            
+            const responses = aiResponses[detectedMood];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            aiInsightContent.innerHTML = `<p class="bright-text">${randomResponse}</p>`;
+            const moodIcons = {
+                happy: "fa-laugh-beam",
+                sad: "fa-sad-tear",
+                energetic: "fa-fire",
+                relaxed: "fa-spa",
+                romantic: "fa-heart",
+                focused: "fa-brain",
+                party: "fa-glass-cheers",
+                nostalgic: "fa-clock"
+            };
+            
+            detectedMoodDisplay.innerHTML = `
+                <i class="fas ${moodIcons[detectedMood]} text-4xl mood-icon"></i>
+                <div>
+                    <h5 class="text-2xl font-semibold bright-text">${detectedMood.charAt(0).toUpperCase() + detectedMood.slice(1)}</h5>
+                    <p class="text-gray-400">Based on your description</p>
+                </div>
+            `;
+            
+            aiResponseDiv.classList.remove('hidden');
+            showNotification('Mood analysis complete!', 'success');
+        }
+        
+        function getRecommendationsFromAI() {
+            if (window.detectedMood) {
+                getRecommendations(window.detectedMood);
+            } else {
+                showNotification('Please analyze your mood first', 'error');
+            }
+        }
+        function playSong(index) {
+            if (currentPlaylist[index]) {
+                currentSong = currentPlaylist[index];
+                currentSongIndex = index;
+                isPlaying = true;
+                audioPlayer.src = currentSong.audioUrl;
+                audioPlayer.play().catch(e => {
+                    console.error("Error playing audio:", e);
+                    showNotification('Error playing audio. Please check your connection.', 'error');
+                });
+                updateMusicPlayer();
+                showMusicPlayer();
+                if (!mockRecentlyPlayed.some(song => song.id === currentSong.id)) {
+                    mockRecentlyPlayed.unshift(currentSong);
+                    if (mockRecentlyPlayed.length > 10) {
+                        mockRecentlyPlayed.pop();
+                    }
+                }
+                
+                const songElements = document.querySelectorAll('.song-item');
+                songElements.forEach((el, i) => {
+                    if (i === index) {
+                        el.classList.add('playing');
+                    } else {
+                        el.classList.remove('playing');
+                    }
+                });
+            }
+        }
+        
+        function updateProgress() {
+            if (audioPlayer.duration) {
+                const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                document.getElementById('progressBar').style.width = progressPercent + '%';
+                document.getElementById('currentTime').textContent = formatTime(audioPlayer.currentTime);
+            }
+        }
+        
+        function togglePlay() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                isPlaying = false;
+            } else {
+                audioPlayer.play().catch(e => {
+                    console.error("Error playing audio:", e);
+                    showNotification('Error playing audio. Please check your connection.', 'error');
+                });
+                isPlaying = true;
+            }
+            const playPauseIcon = document.getElementById('playPauseIcon');
+            playPauseIcon.className = isPlaying ? 'fas fa-pause text-xl' : 'fas fa-play text-xl';
+        }
+        
+        function previousSong() {
+            if (isShuffleOn) {
+                const randomIndex = Math.floor(Math.random() * currentPlaylist.length);
+                playSong(randomIndex);
+            } else if (currentSongIndex > 0) {
+                playSong(currentSongIndex - 1);
+            } else {
+                playSong(currentPlaylist.length - 1);
+            }
+        }
+        
+        function nextSong() {
+            if (isShuffleOn) {
+                const randomIndex = Math.floor(Math.random() * currentPlaylist.length);
+                playSong(randomIndex);
+            } else if (currentSongIndex < currentPlaylist.length - 1) {
+                playSong(currentSongIndex + 1);
+            } else {
+                playSong(0);
+            }
+        }
+        
+        function toggleShuffle() {
+            isShuffleOn = !isShuffleOn;
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            if (isShuffleOn) {
+                shuffleBtn.classList.add('text-cyan-400');
+                shuffleBtn.classList.remove('text-gray-400');
+                showNotification('Shuffle mode enabled', 'success');
+            } else {
+                shuffleBtn.classList.remove('text-cyan-400');
+                shuffleBtn.classList.add('text-gray-400');
+                showNotification('Shuffle mode disabled', 'info');
+            }
+        }
+        
+        function updateMusicPlayer() {
+            if (currentSong) {
+                document.getElementById('playerSongTitle').textContent = currentSong.title;
+                document.getElementById('playerArtist').textContent = currentSong.artist;
+                document.getElementById('playerAlbumArt').src = `https://picsum.photos/seed/album${currentSong.id}/60/60`;
+                document.getElementById('totalTime').textContent = formatTime(currentSong.duration);
+                
+                // Update play/pause icon
+                const playPauseIcon = document.getElementById('playPauseIcon');
+                playPauseIcon.className = isPlaying ? 'fas fa-pause text-xl' : 'fas fa-play text-xl';
+            }
+        }
+        
+        function showMusicPlayer() {
+            document.getElementById('musicPlayer').classList.remove('hidden');
+        }
+        
+        function hideMusicPlayer() {
+            document.getElementById('musicPlayer').classList.add('hidden');
+        }
+        
+        function toggleVolume() {
+            const volumeIcon = document.getElementById('volumeIcon');
+            const volumeSlider = document.getElementById('volumeSlider');
+            
+            if (volume > 0) {
+                // Save current volume before muting
+                window.previousVolume = volume;
+                volume = 0;
+                volumeSlider.value = 0;
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else {
+                // Restore previous volume
+                volume = window.previousVolume || 70;
+                volumeSlider.value = volume;
+                updateVolumeIcon();
+            }
+            
+            audioPlayer.volume = volume / 100;
+        }
+        
+        function setVolume(value) {
+            volume = value;
+            updateVolumeIcon();
+            // Set actual audio volume
+            audioPlayer.volume = volume / 100;
+        }
+        
+        function updateVolumeIcon() {
+            const volumeIcon = document.getElementById('volumeIcon');
+            if (volume == 0) {
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else if (volume < 50) {
+                volumeIcon.className = 'fas fa-volume-down';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+            }
+        }
+        
+        // Library functions
+        function loadLibrary() {
+            const librarySongs = document.getElementById('librarySongs');
+            librarySongs.innerHTML = '';
+            
+            mockSongs.forEach(song => {
+                const songElement = document.createElement('div');
+                songElement.className = 'song-item rounded-xl p-6 flex items-center justify-between';
+                songElement.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="https://picsum.photos/seed/album${song.id}/60/60" alt="Album Art" class="w-14 h-14 rounded-lg">
+                        <div>
+                            <h4 class="font-semibold text-lg bright-text">${song.title}</h4>
+                            <p class="text-gray-400">${song.artist} • ${song.album}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-400">${formatTime(song.duration)}</span>
+                        <button onclick="playFromLibrary(${song.id})" class="btn-primary px-4 py-2 rounded-lg">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                `;
+                librarySongs.appendChild(songElement);
+            });
+        }
+        
+        function playFromLibrary(songId) {
+            const song = mockSongs.find(s => s.id === songId);
+            if (song) {
+                currentPlaylist = [song];
+                currentSongIndex = 0;
+                playSong(0);
+                showView('recommendations');
+                document.getElementById('currentMood').textContent = song.mood.charAt(0).toUpperCase() + song.mood.slice(1);
+            }
+        }
+        
+        function searchLibrary() {
+            const searchTerm = document.getElementById('searchLibrary').value.toLowerCase();
+            const songElements = document.querySelectorAll('#librarySongs .song-item');
+            
+            songElements.forEach(element => {
+                const title = element.querySelector('h4').textContent.toLowerCase();
+                const artist = element.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || artist.includes(searchTerm)) {
+                    element.style.display = 'flex';
+                } else {
+                    element.style.display = 'none';
+                }
+            });
+        }
+        
+        // Playlist functions
+        function loadPlaylists() {
+            const playlistsList = document.getElementById('playlistsList');
+            playlistsList.innerHTML = '';
+            
+            if (mockPlaylists.length === 0) {
+                playlistsList.innerHTML = `
+                    <div class="col-span-3 text-center py-12">
+                        <i class="fas fa-music text-6xl text-gray-600 mb-4"></i>
+                        <p class="text-xl bright-text">You don't have any playlists yet</p>
+                        <button onclick="showCreatePlaylist()" class="btn-primary mt-4 px-6 py-3 rounded-lg font-semibold">
+                            Create Your First Playlist
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            mockPlaylists.forEach(playlist => {
+                const playlistElement = document.createElement('div');
+                playlistElement.className = 'glass-effect rounded-2xl p-6 cursor-pointer hover:scale-105 transition-transform';
+                playlistElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-2xl font-bold bright-text">${playlist.name}</h3>
+                            <p class="text-gray-400">${playlist.songs_count} songs</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editPlaylist(${playlist.id})" class="text-cyan-400 hover:text-cyan-300">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deletePlaylist(${playlist.id})" class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mb-4">
+                        ${playlist.songs.slice(0, 4).map(song => 
+                            `<img src="https://picsum.photos/seed/album${song.id}/50/50" alt="Album Art" class="w-12 h-12 rounded-lg">`
+                        ).join('')}
+                        ${playlist.songs_count > 4 ? `<div class="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400">+${playlist.songs_count - 4}</div>` : ''}
+                    </div>
+                    <button onclick="playPlaylist(${playlist.id})" class="btn-primary w-full py-2 rounded-lg font-semibold">
+                        <i class="fas fa-play mr-2"></i>Play
+                    </button>
+                `;
+                playlistsList.appendChild(playlistElement);
+            });
+        }
+        
+        function showCreatePlaylist() {
+            const playlistName = prompt('Enter playlist name:');
+            if (playlistName) {
+                const newPlaylist = {
+                    id: Date.now(),
+                    name: playlistName,
+                    songs_count: 0,
+                    songs: []
+                };
+                mockPlaylists.push(newPlaylist);
+                showNotification('Playlist created successfully', 'success');
+                loadPlaylists();
+            }
+        }
+        
+        function playPlaylist(playlistId) {
+            const playlist = mockPlaylists.find(p => p.id === playlistId);
+            if (playlist && playlist.songs.length > 0) {
+                currentPlaylist = playlist.songs;
+                currentSongIndex = 0;
+                playSong(0);
+                showView('recommendations');
+                document.getElementById('currentMood').textContent = 'Playlist';
+            } else {
+                showNotification('This playlist is empty', 'info');
+            }
+        }
+        
+        function addToPlaylist(songId) {
+            if (mockPlaylists.length === 0) {
+                showNotification('You need to create a playlist first', 'info');
+                return;
+            }
+            
+            // Create a simple select dialog
+            let options = '';
+            mockPlaylists.forEach(playlist => {
+                options += `<option value="${playlist.id}">${playlist.name}</option>`;
+            });
+            
+            const playlistSelect = document.createElement('div');
+            playlistSelect.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            playlistSelect.innerHTML = `
+                <div class="glass-effect rounded-2xl p-8 max-w-md w-full">
+                    <h3 class="text-2xl font-bold mb-4 bright-text">Add to Playlist</h3>
+                    <select id="playlistDropdown" class="w-full px-4 py-3 rounded-lg mb-6">
+                        ${options}
+                    </select>
+                    <div class="flex justify-end space-x-4">
+                        <button onclick="this.closest('.fixed').remove()" class="px-6 py-3 text-gray-400 hover:text-gray-300">
+                            Cancel
+                        </button>
+                        <button onclick="confirmAddToPlaylist(${songId})" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(playlistSelect);
+        }
+        
+        function confirmAddToPlaylist(songId) {
+            const playlistId = parseInt(document.getElementById('playlistDropdown').value);
+            const playlist = mockPlaylists.find(p => p.id === playlistId);
+            const song = mockSongs.find(s => s.id === songId);
+            
+            if (playlist && song && !playlist.songs.some(s => s.id === songId)) {
+                playlist.songs.push(song);
+                playlist.songs_count = playlist.songs.length;
+                showNotification('Song added to playlist successfully', 'success');
+                loadPlaylists();
+            } else if (playlist.songs.some(s => s.id === songId)) {
+                showNotification('Song is already in this playlist', 'warning');
+            }
+            
+            // Close the dialog
+            document.querySelector('.fixed.inset-0').remove();
+        }
+        
+        function editPlaylist(playlistId) {
+            const playlist = mockPlaylists.find(p => p.id === playlistId);
+            if (playlist) {
+                const newName = prompt('Enter new playlist name:', playlist.name);
+                if (newName && newName.trim() !== '') {
+                    playlist.name = newName.trim();
+                    showNotification('Playlist updated successfully', 'success');
+                    loadPlaylists();
+                }
+            }
+        }
+        
+        function deletePlaylist(playlistId) {
+            if (confirm('Are you sure you want to delete this playlist?')) {
+                const index = mockPlaylists.findIndex(p => p.id === playlistId);
+                if (index !== -1) {
+                    mockPlaylists.splice(index, 1);
+                    showNotification('Playlist deleted successfully', 'success');
+                    loadPlaylists();
+                }
+            }
+        }
+        
+        // Recently played functions
+        function loadRecentlyPlayed() {
+            const recentlyPlayed = document.getElementById('recentlyPlayed');
+            recentlyPlayed.innerHTML = '';
+            
+            if (mockRecentlyPlayed.length === 0) {
+                recentlyPlayed.innerHTML = `
+                    <div class="col-span-3 text-center py-12">
+                        <i class="fas fa-history text-6xl text-gray-600 mb-4"></i>
+                        <p class="text-xl bright-text">No recently played songs</p>
+                        <p class="text-gray-400 mt-2">Start playing music to see your history here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            mockRecentlyPlayed.forEach(song => {
+                const songElement = document.createElement('div');
+                songElement.className = 'glass-effect rounded-2xl p-6 cursor-pointer hover:scale-105 transition-transform';
+                songElement.innerHTML = `
+                    <img src="https://picsum.photos/seed/album${song.id}/300/300" alt="Album Art" class="w-full h-48 object-cover rounded-xl mb-4">
+                    <h3 class="text-xl font-bold bright-text truncate">${song.title}</h3>
+                    <p class="text-gray-400 truncate">${song.artist}</p>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="text-sm text-gray-400">${song.mood}</span>
+                        <button onclick="playFromLibrary(${song.id})" class="btn-primary px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                `;
+                recentlyPlayed.appendChild(songElement);
+            });
+        }
+        
+        // Admin functions
+        function loadAdminData() {
+            loadAdminSongs();
+            loadAdminMoods();
+            loadAdminUsers();
+        }
+        
+        function loadAdminSongs() {
+            const adminSongsList = document.getElementById('adminSongsList');
+            adminSongsList.innerHTML = '';
+            
+            if (mockSongs.length === 0) {
+                adminSongsList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-400">
+                            No songs found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            mockSongs.forEach(song => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium bright-text">${song.title}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-400">${song.artist}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-400">${song.album}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-cyan-900 text-cyan-100">
+                            ${song.mood}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editSong(${song.id})" class="text-cyan-400 hover:text-cyan-300 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteSong(${song.id})" class="text-red-400 hover:text-red-300">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                adminSongsList.appendChild(row);
+            });
+        }
+        
+        function loadAdminMoods() {
+            // This would typically fetch moods from the API
+            // For now, we'll use the predefined moods
+            const moods = [
+                { id: 1, name: 'Happy', icon: 'fa-laugh-beam', description: 'Joyful melodies' },
+                { id: 2, name: 'Sad', icon: 'fa-sad-tear', description: 'Soulful tunes' },
+                { id: 3, name: 'Energetic', icon: 'fa-fire', description: 'High energy' },
+                { id: 4, name: 'Relaxed', icon: 'fa-spa', description: 'Zen moments' },
+                { id: 5, name: 'Romantic', icon: 'fa-heart', description: 'Love songs' },
+                { id: 6, name: 'Focused', icon: 'fa-brain', description: 'Deep concentration' },
+                { id: 7, name: 'Party', icon: 'fa-glass-cheers', description: 'Dance beats' },
+                { id: 8, name: 'Nostalgic', icon: 'fa-clock', description: 'Memory lane' }
+            ];
+            
+            const adminMoodsContainer = document.querySelector('#adminMoods .grid');
+            adminMoodsContainer.innerHTML = '';
+            
+            moods.forEach(mood => {
+                const moodElement = document.createElement('div');
+                moodElement.className = 'glass-effect rounded-2xl p-6';
+                moodElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center">
+                            <i class="fas ${mood.icon} text-3xl mood-icon mr-4"></i>
+                            <div>
+                                <h3 class="text-xl font-bold bright-text">${mood.name}</h3>
+                                <p class="text-gray-400">${mood.description}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editMood(${mood.id})" class="text-cyan-400 hover:text-cyan-300">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteMood(${mood.id})" class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                adminMoodsContainer.appendChild(moodElement);
+            });
+        }
+        
+        function loadAdminUsers() {
+            const adminUsersList = document.getElementById('adminUsersList');
+            adminUsersList.innerHTML = '';
+            
+            if (mockUsers.length === 0) {
+                adminUsersList.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-400">
+                            No users found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            mockUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium bright-text">${user.username}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-400">${user.email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-400">${new Date(user.created_at).toLocaleDateString()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editUser(${user.id})" class="text-cyan-400 hover:text-cyan-300 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteUser(${user.id})" class="text-red-400 hover:text-red-300">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                adminUsersList.appendChild(row);
+            });
+        }
+        
+        function showAdminTab(tab) {
+            // Hide all tab contents
+            document.querySelectorAll('.admin-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Reset all tab styles
+            document.querySelectorAll('.admin-tab').forEach(tabElement => {
+                tabElement.classList.remove('border-cyan-400', 'text-cyan-400');
+                tabElement.classList.add('border-transparent', 'text-gray-400');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`admin${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
+            
+            // Update selected tab style
+            event.target.classList.remove('border-transparent', 'text-gray-400');
+            event.target.classList.add('border-cyan-400', 'text-cyan-400');
+        }
+        
+        function showAddSongForm() {
+            document.getElementById('addSongModal').classList.remove('hidden');
+        }
+        
+        function closeAddSongModal() {
+            document.getElementById('addSongModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('songTitle').value = '';
+            document.getElementById('songArtist').value = '';
+            document.getElementById('songAlbum').value = '';
+            document.getElementById('songMood').value = '';
+            document.getElementById('songDuration').value = '';
+        }
+        
+        function addSong(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('songTitle').value;
+            const artist = document.getElementById('songArtist').value;
+            const album = document.getElementById('songAlbum').value;
+            const mood = document.getElementById('songMood').value;
+            const duration = parseInt(document.getElementById('songDuration').value);
+            
+            // Add new song to mock data
+            const newSong = {
+                id: Date.now(),
+                title: title,
+                artist: artist,
+                album: album,
+                mood: mood,
+                duration: duration,
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Default audio
+            };
+            
+            mockSongs.push(newSong);
+            
+            showNotification('Song added successfully', 'success');
+            closeAddSongModal();
+            loadAdminSongs();
+        }
+        
+        function editSong(songId) {
+            const song = mockSongs.find(s => s.id === songId);
+            if (song) {
+                const newTitle = prompt('Enter new title:', song.title);
+                if (newTitle && newTitle.trim() !== '') {
+                    song.title = newTitle.trim();
+                    showNotification('Song updated successfully', 'success');
+                    loadAdminSongs();
+                }
+            }
+        }
+        
+        function deleteSong(songId) {
+            if (confirm('Are you sure you want to delete this song?')) {
+                const index = mockSongs.findIndex(s => s.id === songId);
+                if (index !== -1) {
+                    mockSongs.splice(index, 1);
+                    showNotification('Song deleted successfully', 'success');
+                    loadAdminSongs();
+                }
+            }
+        }
+        
+        function editMood(moodId) {
+            showNotification('Edit functionality would be implemented here', 'info');
+        }
+        
+        function deleteMood(moodId) {
+            if (confirm('Are you sure you want to delete this mood? This will affect all songs associated with it.')) {
+                showNotification('Mood deleted successfully', 'success');
+                loadAdminMoods();
+            }
+        }
+        
+        function editUser(userId) {
+            showNotification('Edit functionality would be implemented here', 'info');
+        }
+        
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                showNotification('User deleted successfully', 'success');
+                loadAdminUsers();
+            }
+        }
+        
+        // Utility functions
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            
+            // Set background color based on type
+            let bgColor = 'bg-blue-600'; // Default info color
+            if (type === 'success') bgColor = 'bg-green-600';
+            if (type === 'error') bgColor = 'bg-red-600';
+            if (type === 'warning') bgColor = 'bg-yellow-600';
+            
+            notification.className = `notification ${bgColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
