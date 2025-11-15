@@ -1,29 +1,29 @@
 # 🎧 **MoodWave – Emotion-Based Music Recommender**
 
 MoodWave is an emotion-driven music recommendation system built using **HTML, CSS, JavaScript, PHP, and MySQL (XAMPP)**.
-It analyzes the user’s selected mood or input and provides personalized music suggestions to enhance the listening experience.
+Users select a mood or authenticate through supported methods, and the system recommends music that matches their emotional state.
 
 ---
 
 ## 🚀 **Features**
 
-### 😊 Emotion Detection (Manual Input)
+### 😊 Emotion-Based Recommendation
 
-* Users select or enter their current mood
-* System maps mood → genre or track suggestions
-* Personalized recommendations
+* Users choose their mood or input emotional data
+* System maps the mood to curated music suggestions
+* Lightweight, fast, and responsive UI
 
-### 🎶 Music Recommendation System
+### 🔐 Authentication System
 
-* Categorized playlist based on emotions
-* Fast and simple UI interaction
-* Dynamic loading of tracks
+* Login or access control using `auth.php`
+* `callback.php` handles user redirects or OAuth-based flows
+* Secure session handling using PHP
 
-### 👩‍💻 Admin Module
+### 🛠️ Backend & API
 
-* Manage playlists and mood categories
-* Add/update/delete music suggestions
-* Secure access
+* `api.php` provides mood → music response
+* `config.php` stores system configurations
+* `db.php` handles all database operations
 
 ---
 
@@ -31,44 +31,45 @@ It analyzes the user’s selected mood or input and provides personalized music 
 
 * **Frontend:** HTML, CSS, JavaScript
 * **Backend:** PHP
-* **Database:** MySQL (phpMyAdmin)
-* **Server:** XAMPP (Apache + MySQL)
+* **Database:** MySQL
+* **Server:** XAMPP
+* **API Layer:** Custom PHP-based endpoints
 
 ---
 
-## 📂 **Folder Structure**
+## 📂 **Project Structure**
 
 ```
-/admin
-/css
-/images
-/js
-/music
-/index.php
-/mood.php
-/recommend.php
-/dbconfig.php
+/api.php        → API endpoint for mood-based music
+/auth.php       → Authentication handler
+/callback.php   → OAuth/redirect handler
+/config.php     → System configuration settings
+/db.php         → Database connection file
+/index.html     → Main UI for MoodWave
+/assets/        → Images, icons, styles (if present)
 ```
 
-*(Edit according to your exact folder names.)*
+*(Tell me if you want this auto-generated from your repo.)*
 
 ---
 
-## ⚙️ **How to Run (XAMPP Setup)**
+## ⚙️ **Installation & Setup (XAMPP)**
 
-1. Move the project folder to:
+1. Copy the project folder to:
 
    ```
    C:/xampp/htdocs/
    ```
 2. Start **Apache** and **MySQL** in XAMPP.
-3. Open phpMyAdmin → Import the SQL file from the project.
-4. Update database settings in:
+3. Create a new MySQL database in **phpMyAdmin**.
+4. Import the provided `.sql` file (if included).
+5. Update database credentials inside:
 
    ```
-   dbconfig.php
+   db.php
+   config.php
    ```
-5. Run the project in browser:
+6. Run the project:
 
    ```
    http://localhost/MoodWave/
@@ -78,16 +79,14 @@ It analyzes the user’s selected mood or input and provides personalized music 
 
 ## 🎯 **Use Cases**
 
-* Mood-based playlist generation
-* Personalized listening experience
-* Music therapy research
-* Emotion recognition projects
+* Mood-based playlist suggestion
+* Lightweight web recommendation engine
+* Music therapy or emotion analysis projects
+* Personal music enhancer
 
 ---
 
 ## 📄 **License**
 
 This project is licensed under the **MIT License**.
-
----
 
